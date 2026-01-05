@@ -1,0 +1,51 @@
+from PIL import Image
+import os
+
+# Configuration
+SOURCE_DIR = './images_raw'
+OUTPUT_DIR = './images_resized'
+TARGET_WIDTH = 800
+
+def resize_images():
+    # Ensure source directory exists
+    if not os.path.exists(SOURCE_DIR):
+        os.makedirs(SOURCE_DIR)
+        print(f"Created folder '{SOURCE_DIR}'. Please place your images there and run again.")
+        return
+
+    # Create output directory if needed
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+    # Filter only image files
+    files = [f for f in os.listdir(SOURCE_DIR) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+    
+    if not files:
+        print(f"No images found in {SOURCE_DIR}")
+        return
+
+    print(f"Found {len(files)} images. Processing...")
+
+    for filename in files:
+        try:
+            img_path = os.path.join(SOURCE_DIR, filename)
+            
+            # Context manager automatically closes the file
+            with Image.open(img_path) as img:
+                # Calculate new height to maintain aspect ratio
+                # Formula: (Original Height / Original Width) * New Width
+                aspect_ratio = img.height / img.width
+                new_height = int(TARGET_WIDTH * aspect_ratio)
+                
+                # Resize using Lanczos filter (best quality for downscaling)
+                img_resized = img.resize((TARGET_WIDTH, new_height), Image.Resampling.LANCZOS)
+                
+                # Save to output folder
+                save_path = os.path.join(OUTPUT_DIR, filename)
+                img_resized.save(save_path)
+                print(f"[SUCCESS] Saved: {filename} ({TARGET_WIDTH}x{new_height})")
+                
+        except Exception as e:
+            print(f"[ERROR] Could not process {filename}: {e}")
+
+if __name__ == "__main__":
+    resize_images()
