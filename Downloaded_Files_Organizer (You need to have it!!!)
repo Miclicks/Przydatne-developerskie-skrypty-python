@@ -1,0 +1,45 @@
+import os
+import shutil
+
+# Path to the folder you want to clean (e.g., Downloads)
+# UPDATE THIS PATH to match your system!
+TARGET_FOLDER = r'C:\Users\YourUser\Downloads' 
+
+EXTENSIONS = {
+    'Images': ['.jpg', '.jpeg', '.png', '.gif', '.bmp'],
+    'Documents': ['.pdf', '.docx', '.txt', '.xlsx', '.pptx'],
+    'Archives': ['.zip', '.rar', '.7z', '.tar'],
+    'Installers': ['.exe', '.msi', '.dmg'],
+    'Code': ['.py', '.js', '.html', '.css', '.java']
+}
+
+def organize_files():
+    if not os.path.exists(TARGET_FOLDER):
+        print(f"Error: The folder '{TARGET_FOLDER}' does not exist.")
+        return
+
+    for filename in os.listdir(TARGET_FOLDER):
+        file_path = os.path.join(TARGET_FOLDER, filename)
+
+        if os.path.isfile(file_path):
+            file_ext = os.path.splitext(filename)[1].lower()
+            moved = False
+
+            for folder_name, ext_list in EXTENSIONS.items():
+                if file_ext in ext_list:
+                    folder_path = os.path.join(TARGET_FOLDER, folder_name)
+                    os.makedirs(folder_path, exist_ok=True)
+                    shutil.move(file_path, os.path.join(folder_path, filename))
+                    print(f"[MOVED] {filename} -> {folder_name}")
+                    moved = True
+                    break
+            
+            # Optional: Move everything else to an 'Others' folder
+            if not moved:
+                other_path = os.path.join(TARGET_FOLDER, 'Others')
+                os.makedirs(other_path, exist_ok=True)
+                shutil.move(file_path, os.path.join(other_path, filename))
+                print(f"[MOVED] {filename} -> Others")
+
+if __name__ == "__main__":
+    organize_files()
