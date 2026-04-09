@@ -1,0 +1,32 @@
+import time
+import sys
+
+def pomodoro_timer(minutes):
+    seconds = minutes * 60
+    
+    print(f"▶ Rozpoczynamy sesję: {minutes} minut. Skup się na kodowaniu!")
+    print("Naciśnij Ctrl+C, aby przerwać.\n")
+    
+    try:
+        while seconds > 0:
+            mins, secs = divmod(seconds, 60)
+            timer = f"{mins:02d}:{secs:02d}"
+            
+            # Wypisywanie w tej samej linii (\r powraca na początek linii)
+            sys.stdout.write(f"\r⏳ Pozostały czas: {timer}")
+            sys.stdout.flush()
+            
+            time.sleep(1)
+            seconds -= 1
+            
+        print("\n\n🔔 Czas minął! Zrób sobie zasłużoną przerwę.")
+        # Znak \a często wyzwala domyślny dźwięk (beep) systemu operacyjnego
+        sys.stdout.write('\a') 
+        
+    except KeyboardInterrupt:
+        # Obsługa wciśnięcia Ctrl+C przez użytkownika
+        print("\n\n🛑 Timer przerwany. Odpoczywasz?")
+
+if __name__ == "__main__":
+    # Odpalenie standardowej sesji 25 minut (tu ustawiłem 1 min do szybkich testów)
+    pomodoro_timer(1)
