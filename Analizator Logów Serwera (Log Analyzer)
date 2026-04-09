@@ -1,0 +1,46 @@
+import re
+from collections import Counter
+import os
+
+LOG_FILE = 'server.log'
+
+def create_sample_log():
+    # Funkcja pomocnicza tworząca fałszywy plik logów do testów
+    with open(LOG_FILE, 'w') as f:
+        f.write("2023-10-01 INFO: Uruchomienie serwera\n")
+        f.write("2023-10-01 ERROR: Błąd połączenia z bazą danych\n")
+        f.write("2023-10-01 WARNING: Wysokie zużycie RAM\n")
+        f.write("2023-10-01 ERROR: Błąd połączenia z bazą danych\n")
+        f.write("2023-10-01 INFO: Logowanie użytkownika\n")
+        f.write("2023-10-01 ERROR: Timeout zapytania\n")
+
+def analyze_logs():
+    if not os.path.exists(LOG_FILE):
+        print("Tworzenie przykładowego pliku logów...")
+        create_sample_log()
+
+    error_counter = Counter()
+    
+    # Wyrażenie regularne łapiące typ logu (np. ERROR) i resztę wiadomości
+    log_pattern = re.compile(r'(INFO|ERROR|WARNING):\s(.*)')
+
+    with open(LOG_FILE, 'r') as file:
+        for line in file:
+            match = log_pattern.search(line)
+            if match:
+                log_level = match.group(1)
+                message = match.group(2)
+                
+                # Zliczamy tylko błędy typu ERROR
+                if log_level == 'ERROR':
+                    error_counter[message] += 1
+
+    print("--- RAPORT NAJCZĘSTSZYCH BŁĘDÓW ---")
+    if not error_counter:
+        print("Brak błędów w logach! 🎉")
+    else:
+        for error, count in error_counter.most_common():
+            print(f"[{count}x] {error}")
+
+if __name__ == "__main__":
+    analyze_logs()
