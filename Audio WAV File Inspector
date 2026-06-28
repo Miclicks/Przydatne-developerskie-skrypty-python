@@ -1,0 +1,56 @@
+"""
+SCRIPT: Audio WAV File Inspector
+DESCRIPTION:
+    Analyzes a .wav audio file and extracts its technical metadata, such as 
+    sample rate, number of channels (mono/stereo), and audio length in seconds.
+
+LEARNING CONCEPTS:
+    1. Binary File Handling: Reading specific headers of media files.
+    2. Standard Libraries: Using the built-in 'wave' and 'contextlib' modules.
+    3. Audio Engineering Concepts: Understanding sample rates, frames, and channels.
+
+USAGE:
+    1. Place a .wav file in the same directory.
+    2. Update the 'AUDIO_FILE' variable with your filename.
+    3. Run the script.
+"""
+
+import wave
+import contextlib
+import os
+
+# Update this to a valid .wav file path on your system
+AUDIO_FILE = "sample_track.wav"
+
+def inspect_audio(file_path):
+    if not os.path.exists(file_path):
+        print(f"Error: The file '{file_path}' was not found.")
+        return
+
+    try:
+        # Using contextlib to ensure the file is closed properly
+        with contextlib.closing(wave.open(file_path, 'r')) as f:
+            frames = f.getnframes()
+            rate = f.getframerate()
+            duration = frames / float(rate)
+            channels = f.getnchannels()
+            
+            channel_type = "Stereo" if channels == 2 else "Mono" if channels == 1 else "Multi-channel"
+
+            print(f"--- AUDIO METADATA: {os.path.basename(file_path)} ---")
+            print(f"Channels:    {channels} ({channel_type})")
+            print(f"Sample Rate: {rate} Hz")
+            print(f"Frames:      {frames}")
+            print(f"Duration:    {duration:.2f} seconds")
+            print("-" * 40)
+            
+    except wave.Error as e:
+        print(f"Error reading WAV file. Is it a valid WAV? Details: {e}")
+
+if __name__ == "__main__":
+    # Create a dummy file just so the script doesn't instantly crash if none exists
+    # Remove this block in actual production usage
+    if not os.path.exists(AUDIO_FILE):
+        print("Note: Provide a real .wav file to see actual results.")
+        
+    inspect_audio(AUDIO_FILE)
