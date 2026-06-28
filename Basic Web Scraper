@@ -1,0 +1,55 @@
+"""
+SCRIPT: Basic Web Scraper (Article Titles)
+DESCRIPTION:
+    Connects to a website, downloads its HTML content, and parses it to extract
+    all primary headings (H1 and H2 tags). Useful for aggregating news or blog titles.
+
+LEARNING CONCEPTS:
+    1. Web Scraping: Using 'BeautifulSoup' to navigate HTML Document Object Models (DOM).
+    2. HTTP Requests: Fetching web pages with the 'requests' library.
+    3. Data Extraction: Filtering raw data into readable information.
+
+USAGE:
+    1. Install libraries: `pip install requests beautifulsoup4`
+    2. Update 'TARGET_URL' to the website you want to scrape.
+    3. Run the script.
+"""
+
+import requests
+from bs4 import BeautifulSoup
+
+TARGET_URL = "https://en.wikipedia.org/wiki/Python_(programming_language)"
+
+def scrape_titles():
+    print(f"Connecting to {TARGET_URL}...")
+    
+    try:
+        # Add a custom User-Agent to prevent getting blocked by basic anti-bot systems
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+        response = requests.get(TARGET_URL, headers=headers, timeout=10)
+        response.raise_for_status()
+
+        # Parse the HTML content
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        # Find the main H1 title
+        main_title = soup.find('h1')
+        print(f"\n[MAIN TITLE]: {main_title.text.strip() if main_title else 'No H1 found'}")
+        
+        print("\n[SUBHEADINGS / H2]:")
+        # Find all H2 tags
+        h2_tags = soup.find_all('h2')
+        
+        for idx, tag in enumerate(h2_tags, start=1):
+            # Clean up the text by removing extra spaces and newlines
+            clean_text = tag.text.strip().replace('\n', '')
+            if clean_text: # Only print if not empty
+                print(f"  {idx}. {clean_text}")
+
+    except requests.exceptions.RequestException as e:
+        print(f"Network error occurred: {e}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+
+if __name__ == "__main__":
+    scrape_titles()
