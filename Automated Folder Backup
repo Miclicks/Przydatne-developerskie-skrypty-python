@@ -1,0 +1,58 @@
+"""
+SCRIPT: Automated Folder Backup
+DESCRIPTION:
+    Creates a compressed ZIP archive of a target directory and saves it to a backup folder.
+    Automatically appends the current date and time to the backup filename to prevent overwriting.
+
+LEARNING CONCEPTS:
+    1. Archiving: Creating ZIP files using the 'shutil' library.
+    2. Datetime manipulation: Formatting current time for safe filenames.
+    3. Disaster Recovery: Basic principles of automated backups.
+
+USAGE:
+    1. Update 'SOURCE_FOLDER' to the directory you want to backup.
+    2. Update 'BACKUP_DESTINATION' to where you want the zip saved.
+    3. Run the script (can be scheduled via cron or Task Scheduler).
+"""
+
+import shutil
+import os
+from datetime import datetime
+
+# --- CONFIGURATION ---
+SOURCE_FOLDER = './my_important_project'
+BACKUP_DESTINATION = './backups'
+
+def create_backup():
+    # Ensure source exists
+    if not os.path.exists(SOURCE_FOLDER):
+        print(f"Error: Source folder '{SOURCE_FOLDER}' does not exist.")
+        return
+
+    # Ensure backup directory exists
+    os.makedirs(BACKUP_DESTINATION, exist_ok=True)
+
+    # Generate timestamped filename
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    folder_name = os.path.basename(os.path.normpath(SOURCE_FOLDER))
+    archive_name = f"{folder_name}_backup_{timestamp}"
+    
+    # Full path for the new zip (without the .zip extension, shutil adds it)
+    archive_path = os.path.join(BACKUP_DESTINATION, archive_name)
+
+    print(f"Starting backup of '{SOURCE_FOLDER}'...")
+    
+    try:
+        # Create the zip archive
+        shutil.make_archive(archive_path, 'zip', SOURCE_FOLDER)
+        print(f"[SUCCESS] Backup saved to: {archive_path}.zip")
+    except Exception as e:
+        print(f"[ERROR] Backup failed: {e}")
+
+if __name__ == "__main__":
+    # Example: Create a dummy source folder so the script runs successfully on first try
+    os.makedirs(SOURCE_FOLDER, exist_ok=True)
+    with open(os.path.join(SOURCE_FOLDER, 'test_file.txt'), 'w') as f:
+        f.write("This is a test file for the backup script.")
+        
+    create_backup()
