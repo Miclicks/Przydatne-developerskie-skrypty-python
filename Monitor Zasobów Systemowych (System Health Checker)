@@ -1,0 +1,41 @@
+import psutil
+import time
+
+# Limity, po przekroczeniu których wyświetli się ostrzeżenie
+CPU_LIMIT_PERCENT = 80.0
+RAM_LIMIT_PERCENT = 85.0
+
+def get_size(bytes, suffix="B"):
+    # Funkcja pomocnicza do zamiany bajtów na MB, GB itp.
+    factor = 1024
+    for unit in ["", "K", "M", "G", "T", "P"]:
+        if bytes < factor:
+            return f"{bytes:.2f} {unit}{suffix}"
+        bytes /= factor
+
+def monitor_system():
+    print("🖥️  --- STATUS ZASOBÓW SYSTEMOWYCH ---\n")
+    
+    # --- CPU ---
+    cpu_usage = psutil.cpu_percent(interval=1)
+    cpu_cores = psutil.cpu_count(logical=False)
+    print(f"Procesor (CPU): {cpu_usage}% (Rdzenie fizyczne: {cpu_cores})")
+    if cpu_usage > CPU_LIMIT_PERCENT:
+        print("   ⚠️ UWAGA: Wysokie obciążenie procesora!")
+
+    # --- RAM ---
+    ram = psutil.virtual_memory()
+    print(f"Pamięć (RAM): {ram.percent}% zużycia")
+    print(f"   Użyto: {get_size(ram.used)} / Całkowita: {get_size(ram.total)}")
+    if ram.percent > RAM_LIMIT_PERCENT:
+        print("   ⚠️ UWAGA: Mało wolnej pamięci RAM!")
+
+    # --- Dysk ---
+    # Sprawdzamy główną partycję (na Windowsie to przeważnie 'C:\\', na Linux/Mac '/')
+    partition = 'C:\\' if psutil.WINDOWS else '/'
+    disk = psutil.disk_usage(partition)
+    print(f"Dysk główny ({partition}): {disk.percent}% zapełnienia")
+    print(f"   Wolne miejsce: {get_size(disk.free)}")
+
+if __name__ == "__main__":
+    monitor_system()
