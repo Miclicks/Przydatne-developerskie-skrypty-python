@@ -1,0 +1,71 @@
+import sqlite3
+import os
+
+DB_NAME = 'tasks.db'
+
+def init_db():
+    # Tworzy plik bazy danych i tabelę, jeśli jeszcze nie istnieją
+    with sqlite3.connect(DB_NAME) as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS tasks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                status TEXT DEFAULT 'TODO'
+            )
+        ''')
+        conn.commit()
+
+def add_task(name):
+    with sqlite3.connect(DB_NAME) as conn:
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO tasks (name) VALUES (?)', (name,))
+        conn.commit()
+        print(f"\n[+] Dodano zadanie: '{name}'")
+
+def view_tasks():
+    with sqlite3.connect(DB_NAME) as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT id, name, status FROM tasks')
+        tasks = cursor.fetchall()
+        
+        print("\n--- TWOJE ZADANIA ---")
+        if not tasks:
+            print("Brak zadań! Możesz odpoczywać.")
+        else:
+            for task in tasks:
+                # task[0] to id, task[1] to nazwa, task[2] to status
+                icon = "✅" if task[2] == 'DONE' else "⏳"
+                print(f"[{task[0]}] {icon} {task[1]}")
+        print("---------------------\n")
+
+def complete_task(task_id):
+    with sqlite3.connect(DB_NAME) as conn:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE tasks SET status = 'DONE' WHERE id = ?", (task_id,))
+        conn.commit()
+        print(f"\n[✅] Zadanie o ID {task_id} zostało wykonane!")
+
+if __name__ == "__main__":
+    init_db()
+    
+    while True:
+        print("1. Dodaj zadanie | 2. Pokaż zadania | 3. Zakończ zadanie | 4. Wyjdź")
+        choice = input("Wybierz akcję (1-4): ")
+        
+        if choice == '1':
+            task_name = input("Wpisz treść zadania: ")
+            add_task(task_name)
+        elif choice == '2':
+            view_tasks()
+        elif choice == '3':
+            try:
+                tid = int(input("Podaj ID zadania do zakończenia: "))
+                complete_task(tid)
+            except ValueError:
+                print("Błąd: ID musi być cyfrą!")
+        elif choice == '4':
+            print("Do zobaczenia!")
+            break
+        else:
+            print("Nieznana komenda, spróbuj ponownie.")
