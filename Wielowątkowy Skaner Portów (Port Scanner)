@@ -1,0 +1,39 @@
+import socket
+from concurrent.futures import ThreadPoolExecutor
+
+# Cel skanowania (zostaw 127.0.0.1 do testów na własnym komputerze)
+TARGET = '127.0.0.1'
+
+# Lista popularnych portów do sprawdzenia (np. 80-HTTP, 443-HTTPS, 22-SSH, 3306-MySQL)
+PORTS_TO_SCAN = [21, 22, 23, 25, 53, 80, 110, 135, 139, 443, 445, 3306, 5432, 8080]
+
+def scan_port(port):
+    # Tworzymy gniazdo sieciowe
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        # Ustawiamy bardzo krótki timeout (żeby nie czekać w nieskończoność na martwe porty)
+        s.settimeout(0.5)
+        # connect_ex zwraca 0, jeśli połączenie się powiodło
+        if s.connect_ex((TARGET, port)) == 0:
+            return port
+    return None
+
+def main():
+    print(f"🔍 Rozpoczynam skanowanie portów dla IP: {TARGET}...\n")
+    open_ports = []
+    
+    # Używamy ThreadPoolExecutor do zrównoleglenia zadań (sprawdzamy wiele portów naraz)
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        results = executor.map(scan_port, PORTS_TO_SCAN)
+        
+        for port in results:
+            if port is not None:
+                open_ports.append(port)
+                print(f"[+] Port {port} jest OTWARTY")
+
+    if not open_ports:
+        print("[-] Nie znaleziono żadnych otwartych portów z podanej listy.")
+    else:
+        print(f"\n✅ Zakończono. Otwarte porty: {open_ports}")
+
+if __name__ == "__main__":
+    main()
